@@ -1023,7 +1023,7 @@
   [filename]
   (let [his (read-history filename)]
     (time
-     (c {:consistency-models [:strong-snapshot-isolation]} his))))
+     (c {:consistency-models [:strong-snapshot-isolation], :anomalies [:G-nonadjacent]} his))))
 
 (for [param params]
   (let [check-results (for [i (range 10)]
@@ -1031,3 +1031,23 @@
                           (get-time filename)))]
     {:param param
      :res   check-results}))
+
+(def h-G-SIa
+  [{:type :invoke, :f :txn, :value [[:append :x 1] [:append :x 2] [:append :y 1]], :process 0, :time 10, :index 1}
+   {:type :invoke, :f :txn, :value [[:append :x 3] [:append :y 2]], :process 1, :time 20, :index 2}
+   {:type :ok, :f :txn, :value [[:append :x 1][:append :x 2][:append :y 1]], :process 0, :time 30, :index 3}
+   {:type :ok, :f :txn, :value [[:append :x 3] [:append :y 2]], :process 1, :time 40, :index 4}
+   {:type :invoke, :f :txn, :value [[:r :x nil]], :process 2, :time 50, :index 5}
+   {:type :ok, :f :txn, :value [[:r :x [1 2 3]]], :process 2, :time 60, :index 6}
+   {:type :invoke, :f :txn, :value [[:r :x nil]], :process 3, :time 70, :index 7}
+   {:type :ok, :f :txn, :value [[:r :x [1 2]]], :process 3, :time 80, :index 8}])
+
+(def h-paper
+  [{:index 0 :type :invoke  :value [[:append 253 1] [:append 253 3] [:append 253 4] [:append 255 2] [:append 255 3] [:append 255 4] [:append 255 5] [:append 256 1] [:append 256 2]]}
+   {:index 1 :type :ok      :value [[:append 253 1] [:append 253 3] [:append 253 4] [:append 255 2] [:append 255 3] [:append 255 4] [:append 255 5] [:append 256 1] [:append 256 2]]}
+   {:index 2 :type :invoke, :value [[:append 255 8] [:r 253 nil]]}
+   {:index 3 :type :ok,     :value [[:append 255 8] [:r 253 [1 3 4]]]}
+   {:index 4 :type :invoke, :value [[:append 256 4] [:r 255 nil] [:r 256 nil] [:r 253 nil]]}
+   {:index 5 :type :ok,     :value [[:append 256 4] [:r 255 [2 3 4 5 8]] [:r 256 [1 2 4]] [:r 253 [1 3 4]]]}
+   {:index 6 :type :invoke, :value [[:append 250 10] [:r 253 nil] [:r 255 nil] [:append 256 3]]}
+   {:index 7 :type :ok      :value [[:append 250 10] [:r 253 [1 3 4]] [:r 255 [2 3 4 5]] [:append 256 3]]}])
