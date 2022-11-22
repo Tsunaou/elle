@@ -982,3 +982,52 @@
   ; A case where even small SCCs caused the cycle search to time out
   (cf {:consistency-models [:strong-snapshot-isolation]}
       "histories/small-slow-scc.edn"))
+
+(deftest ^:perf elle-compare-test
+  (cf {:consistency-models [:strong-snapshot-isolation]}
+      "to-check/disthotspot/history0.edn"))
+
+(def params
+  ["to-check/sess5/",
+   "to-check/ops-per-txn10/",
+   "to-check/ops-per-txn25/",
+   "to-check/read-ratio0.2/",
+   "to-check/distuniform/",
+   "to-check/read-ratio0.4/",
+   "to-check/keys2000/",
+   "to-check/ops-per-txn20/",
+   "to-check/txns-per-sess50/",
+   "to-check/sess25/",
+   "to-check/ops-per-txn15/",
+   "to-check/sess20/",
+   "to-check/read-ratio0.6/",
+   "to-check/keys10000/",
+   "to-check/disthotspot/",
+   "to-check/txns-per-sess150/",
+   "to-check/txns-per-sess200/",
+   "to-check/txns-per-sess100/",
+   "to-check/read-ratio0.8/",
+   "to-check/distzipf/",
+   "to-check/sess15/",
+   "to-check/txns-per-sess250/",
+   "to-check/read-ratio1.0/",
+   "to-check/ops-per-txn5/",
+   "to-check/keys8000/",
+   "to-check/keys6000/",
+   "to-check/sess30/",
+   "to-check/keys4000/",
+   "to-check/sess10/",
+   "to-check/ops-per-txn30/"])
+
+(defn get-time
+  [filename]
+  (let [his (read-history filename)]
+    (time
+     (c {:consistency-models [:strong-snapshot-isolation]} his))))
+
+(for [param params]
+  (let [check-results (for [i (range 10)]
+                        (let [filename (str param "history" i ".edn")]
+                          (get-time filename)))]
+    {:param param
+     :res   check-results}))

@@ -17,6 +17,7 @@
   :jvm-opts ["-server"
              ;"-XX:-OmitStackTraceInFastThrow"
              ;"-XX:+PrintGC"
+             "-Djava.awt.headless=true"
              ]
   :repl-options {:init-ns elle.core}
   :test-selectors {:default (fn [m] (not (or (:perf m)
