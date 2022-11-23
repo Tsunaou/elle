@@ -41,6 +41,48 @@
   (let [analyzer (elle/combine la/graph elle/realtime-graph)]
     (elle/check- analyzer h)))
 
+;; t1->t2->t3->t4
+;; t1 -> :rw by :x t2
+;; t2 -> :process t3
+;; t3 -> :rw by :z t4
+;; t4 -> :wr by :z t1
+(def g-single-nonadjacent-his
+  (let [[t1 t1'] (pair (lat/op 0 :ok "rxrz1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ax1"))
+        [t3 t3'] (pair (lat/op 1 :ok "rz"))
+        [t4 t4'] (pair (lat/op 2 :ok "az1"))]
+    (h/index [t1 t1' t2 t2' t3 t3' t4 t4'])))
+
+(la/check {:consistency-models [:strong-session-snapshot-isolation]} g-single-nonadjacent-his)
+
+;; t1->t2->t3->t4
+;; t1 -> :rw by :x t2
+;; t2 -> :wr by :y t3
+;; t3 -> :rw by :z t4
+;; t4 -> :wr by :z t1
+(def g-single-nonadjacent-his2
+  (let [[t1 t1'] (pair (lat/op 0 :ok "rxrz1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ay1ax1"))
+        [t3 t3'] (pair (lat/op 2 :ok "rzry1"))
+        [t4 t4'] (pair (lat/op 3 :ok "az1"))]
+    (h/index [t1 t1' t2 t2' t3 t3' t4 t4'])))
+
+(la/check {:consistency-models [:strong-session-snapshot-isolation]} g-single-nonadjacent-his2)
+
+;; t1->t2->t3->t4
+;; t1 -> :rw by :x t2
+;; t2 -> :wr by :x t3
+;; t3 -> :wr by :z t4
+;; t4 -> :rw by :y t1
+(def g-single-nonadjacent-his3
+  (let [[t1 t1'] (pair (lat/op 0 :ok "rxay1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ax1"))
+        [t3 t3'] (pair (lat/op 2 :ok "rx1az1"))
+        [t4 t4'] (pair (lat/op 3 :ok "ryrz1"))]
+    (h/index [t1 t1' t2 t2' t3 t3' t4 t4'])))
+(la/check {:consistency-models [:strong-session-snapshot-isolation]} g-single-nonadjacent-his3)
+
+
 (deftest ^:interactive view-scc-test
   (let [a (list-analysis)]
     (view-scc a (first (:sccs a)))))

@@ -929,3 +929,12 @@
    (gen {}))
   ([opts]
    (ct/gen (append-txns opts))))
+
+(def h [{:type :invoke, :value [[:r :x nil] [:r :z nil]], :process 0, :index 0}
+        {:type :ok, :value [[:r :x nil] [:r :z [1]]], :process 0, :index 1}
+        {:type :invoke, :value [[:append :x 1]], :process 1, :index 2}
+        {:type :ok, :value [[:append :x 1]], :process 1, :index 3}
+        {:type :invoke, :value [[:r :z nil]], :process 1, :index 4}
+        {:type :ok, :value [[:r :z nil]], :process 1, :index 5}
+        {:type :invoke, :value [[:append :z 1]], :process 2, :index 6}
+        {:type :ok, :value [[:append :z 1]], :process 2, :index 7}])
