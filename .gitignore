@@ -17,3 +17,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+.calva
+.lsp
+.clj-kondo
+to-check

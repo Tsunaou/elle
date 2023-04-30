@@ -1087,3 +1087,38 @@
                      n run-time (/ n run-time)
                      check-time (/ n check-time)))))
 
+
+(def params
+  ["to-check/sess2/",
+   "to-check/sess5/",
+   "to-check/sess10/",
+   "to-check/sess15/",
+   "to-check/sess20/",
+   "to-check/sess25/",
+   "to-check/sess30/",
+   "to-check/sess40/"
+   "to-check/sess50/",,
+   "to-check/op10/",
+   "to-check/op20/",
+   "to-check/op30/",
+   "to-check/op40/",
+   "to-check/op50/",
+   "to-check/txns-per-session100/",
+  ;;  "to-check/txns-per-session200/",
+   "to-check/txns-per-session300/",
+   "to-check/txns-per-session400/",
+   "to-check/txns-per-session500/" 
+   ])
+
+(defn get-time
+  [filename]
+  (let [his (read-history filename)]
+    (time
+     (c {:consistency-models [:strong-session-snapshot-isolation]} his))))
+
+(for [param params]
+  (let [check-results (for [i (range 3)]
+                        (let [filename (str param "history" i ".edn")]
+                          (get-time filename)))]
+    {:param param
+     :res   check-results}))

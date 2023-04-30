@@ -1,0 +1,151 @@
+({:param "to-check/sess2/", :res "Elapsed time: 39.300759 msecs"
+"Elapsed time: 40.627548 msecs"
+"Elapsed time: 35.062841 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess5/", :res "Elapsed time: 90.337445 msecs"
+"Elapsed time: 80.121967 msecs"
+"Elapsed time: 83.571289 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess10/", :res "Elapsed time: 186.83681 msecs"
+"Elapsed time: 193.546354 msecs"
+"Elapsed time: 146.265333 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess15/", :res "Elapsed time: 254.843378 msecs"
+"Elapsed time: 219.165073 msecs"
+"Elapsed time: 247.781291 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess20/", :res "Elapsed time: 360.234861 msecs"
+"Elapsed time: 325.436992 msecs"
+"Elapsed time: 356.259075 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess25/", :res "Elapsed time: 696.914388 msecs"
+"Elapsed time: 416.459652 msecs"
+"Elapsed time: 386.774045 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess30/", :res "Elapsed time: 514.898349 msecs"
+"Elapsed time: 496.178596 msecs"
+"Elapsed time: 932.937973 msecs"
+({:valid? true} {:valid? true} {:valid? true})} {:param "to-check/sess40/", :res "Elapsed time: 628.684019 msecs"
+"Elapsed time: 1777.928086 msecs"
+"Elapsed time: 661.483326 msecs"
+({:valid? true}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G2-item,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent),
+     :scc-size 323}]},
+  :not #{:repeatable-read}}
+ {:valid? true})}
+ {:param "to-check/sess50/", :res "Elapsed time: 911.573342 msecs"
+"Elapsed time: 1955.896939 msecs"
+"Elapsed time: 978.217822 msecs"
+({:valid? true}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G2-item,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent),
+     :scc-size 284}]},
+  :not #{:repeatable-read}}
+ {:valid? true})}
+ {:param "to-check/op10/", :res "Elapsed time: 239.102134 msecs"
+"Elapsed time: 238.020326 msecs"
+"Elapsed time: 245.682208 msecs"
+({:valid? true} {:valid? true} {:valid? true})}
+ {:param "to-check/op20/", :res "Elapsed time: 402.899293 msecs"
+"Elapsed time: 411.52288 msecs"
+"Elapsed time: 447.375306 msecs"
+({:valid? true} {:valid? true} {:valid? true})}
+ {:param "to-check/op30/", :res "Elapsed time: 653.517095 msecs"
+"Elapsed time: 588.539616 msecs"
+"Elapsed time: 669.444039 msecs"
+({:valid? true} {:valid? true} {:valid? true})}
+ {:param "to-check/op40/", :res "Elapsed time: 1604.85453 msecs"
+"Elapsed time: 4459.653675 msecs"
+"Elapsed time: 1457.21405 msecs"
+({:valid? true}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G-nonadjacent-process,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent :G2-item :G0-process :G1c-process :G-single-process),
+     :scc-size 130}
+    {:type :cycle-search-timeout,
+     :anomaly-spec-type :G2-item-realtime,
+     :does-not-contain
+     (:G0
+      :G1c
+      :G-single
+      :G-nonadjacent
+      :G2-item
+      :G0-process
+      :G1c-process
+      :G-single-process
+      :G-nonadjacent-process
+      :G2-item-process
+      :G0-realtime
+      :G1c-realtime
+      :G-single-realtime
+      :G-nonadjacent-realtime),
+     :scc-size 99}
+    {:type :cycle-search-timeout,
+     :anomaly-spec-type :G-nonadjacent-process,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent :G2-item :G0-process :G1c-process :G-single-process),
+     :scc-size 108}]},
+  :not #{:repeatable-read}}
+ {:valid? true})}
+ {:param "to-check/op50/", :res "Elapsed time: 3161.670049 msecs"
+"Elapsed time: 3578.088774 msecs"
+"Elapsed time: 2870.700045 msecs"
+({:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout, :anomaly-spec-type :G-single, :does-not-contain (:G0 :G1c), :scc-size 219}]},
+  :not #{:repeatable-read}}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G-nonadjacent-process,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent :G2-item :G0-process :G1c-process :G-single-process),
+     :scc-size 111}]},
+  :not #{:repeatable-read}}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G-nonadjacent,
+     :does-not-contain (:G0 :G1c :G-single),
+     :scc-size 144}]},
+  :not #{:repeatable-read}})}
+ {:param "to-check/txns-per-session100/", :res "Elapsed time: 238.735282 msecs"
+"Elapsed time: 202.487194 msecs"
+"Elapsed time: 226.188701 msecs"
+({:valid? true} {:valid? true} {:valid? true})}
+ {:param "to-check/txns-per-session300/", :res "Elapsed time: 663.11708 msecs"
+"Elapsed time: 693.977723 msecs"
+"Elapsed time: 1312.552909 msecs"
+({:valid? true} {:valid? true} {:valid? true})}
+ {:param "to-check/txns-per-session400/", :res "Elapsed time: 981.044716 msecs"
+"Elapsed time: 855.559829 msecs"
+"Elapsed time: 1842.143061 msecs"
+({:valid? true}
+ {:valid? true}
+ {:valid? :unknown,
+  :anomaly-types (:cycle-search-timeout),
+  :anomalies
+  {:cycle-search-timeout
+   [{:type :cycle-search-timeout,
+     :anomaly-spec-type :G-nonadjacent-process,
+     :does-not-contain (:G0 :G1c :G-single :G-nonadjacent :G2-item :G0-process :G1c-process :G-single-process),
+     :scc-size 166}]},
+  :not #{:repeatable-read}})}
+ {:param "to-check/txns-per-session500/", :res "Elapsed time: 1014.475995 msecs"
+"Elapsed time: 1147.145031 msecs"
+"Elapsed time: 1205.487215 msecs"
+({:valid? true} {:valid? true} {:valid? true})})
+clj꞉elle.list-append-test꞉> 
