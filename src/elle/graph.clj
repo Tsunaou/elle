@@ -5,13 +5,15 @@
   We perform as much of our heavy lifting as possible in Bifurcan structures,
   then coerce them back to Clojure data structures for analysis, serialization,
   pretty-printing, etc."
+  (:refer-clojure :exclude [remove])
   (:require [clojure.tools.logging :refer [info error warn]]
+            [clojure.core :as c]
             [clojure.core.reducers :as r]
             [clojure.set :as set]
             [elle.util :refer [map-vals maybe-interrupt]])
   (:import (io.lacuna.bifurcan DirectedGraph
                                Graphs
-                               Graphs$Edge
+                               Graphs$DirectedEdge
                                ICollection
                                IEdge
                                IEntry
@@ -122,18 +124,26 @@
     (apply [_ a b]
       (set/union a b))))
 
-(defn ^IEdge edge
+(defn edge
   "Returns the edge between two vertices."
   [^IGraph g a b]
   (.edge g a b))
+
+(defn maybe-edge
+  "Returns the edge between two vertices, or nil if one does not exist."
+  [^IGraph g a b]
+  (let [o (out g a)]
+    (when (and o (.contains o b))
+      (.edge g a b))))
 
 (defn edges
   "A lazy seq of all edges."
   [^IGraph g]
   ; We work around a bug in bifurcan which returns edges backwards!
-  (map (fn [^IEdge e]
-         (Graphs$Edge. (.value e) (.to e) (.from e)))
-       (.edges g)))
+  ;(map (fn [^IEdge e]
+  ;       (Graphs$DirectedEdge. (.value e) (.to e) (.from e)))
+  ;     (.edges g)))
+  (.edges g))
 
 (defn add
   "Add a node to a graph."
@@ -173,7 +183,7 @@
   "Given a graph g, links all xs to y."
   ([g xs y]
    (if (seq xs)
-     (recur (link (first xs) y) (next xs) y)
+     (recur (link g (first xs) y) (next xs) y)
      g))
   ([g xs y relationship]
    (if (seq xs)
@@ -255,6 +265,11 @@
                           rs')))
                     g))
 
+(defn ^DirectedGraph remove
+  "Removes the given vertex from the graph."
+  [^DirectedGraph g v]
+  (.remove g v))
+
 (defn ^DirectedGraph remove-self-edges
   "There are times when it's just way simpler to use link-all-to-all between
   sets that might intersect, and instead of writing all-new versions of link-*
@@ -266,6 +281,20 @@
       (let [node (first nodes)]
         (recur (unlink g node node) (next nodes)))
       (forked g))))
+
+(defn ^DirectedGraph remove-split-edges
+  "This function takes a Digraph and filters it to remove any edges which split
+  or join on a single node: each node has at most one in and one out edge."
+  [^DirectedGraph g]
+  (forked
+    (reduce (fn [^DirectedGraph g v]
+              (let [in  (in g v)
+                    out (out g v)]
+                (cond-> g
+                  (< 1 (count in))  (unlink-all-to in v)
+                  (< 1 (count out)) (unlink-to-all v out))))
+            (linear g)
+            (vertices g))))
 
 (defn bfs
   "Takes a function of a vertex yielding neighbors, and a collection of
@@ -670,5 +699,45 @@
           ; We can jump from this node to something in our own path
           (conj (subvec path loop-idx) (nth path loop-idx))
           ; Keep exploring
-          (let [v (first (remove seen vs))]
+          (let [v (first (c/remove seen vs))]
             (recur (conj path v) (assoc seen v (count path)))))))))
+
+(defn total-order?
+  "Returns truthy iff this graph is a total order: every vertex has at most one
+  outbound edge and one inbound edge, exactly one vertex has no inbound edge,
+  and exactly one different vertex has no outbound edge.
+
+  If this graph is a total order, returns {:min min, :max max}, where min and
+  max are the vertices with no inbound and no outbound edges, respectively."
+  [g]
+  (let [res (reduce (fn [[min max :as bounds] v]
+                      (let [in-count (.size (in g v))
+                            out-count (.size (out g v))]
+                        (cond ; Normal vertex
+                              (and (= 1 in-count) (= 1 out-count))
+                              bounds
+
+                              ; Too many edges!
+                              (or (< 1 in-count) (< 1 out-count))
+                              (reduced false)
+
+                              ; Too few edges!
+                              (and (= 0 in-count) (= 0 out-count))
+                              (reduced false)
+
+                              ; This node is a minimum
+                              (= 0 in-count)
+                              (if min
+                                (reduced false) ; Duplicate minimum!
+                                [v max])        ; We found our minimum
+
+                              (= 0 out-count)
+                              (if max
+                                (reduced false)
+                                [min v]))))
+                    [nil nil]
+                    (vertices g))]
+    (if res
+      {:min (first res)
+       :max (second res)}
+      false)))

@@ -1,5 +1,5 @@
 (ns elle.rw-register
-  "A test which looks for cycles in write/read transactionss over registers.
+  "A test which looks for cycles in write/read transactions over registers.
   Writes are assumed to be unique, but this is the only constraint.
 
   Operations are of two forms:
@@ -53,6 +53,8 @@
                                LinearSet
                                Map
                                Set)))
+
+(set! *warn-on-reflection* true)
 
 (defn op-internal-case
   "Given an op, returns a map describing internal consistency violations, or
@@ -460,7 +462,10 @@
     (reduce (fn [cases [k version-graph]]
               (let [sccs (g/strongly-connected-components version-graph)]
                 (->> sccs
-                     (sort-by (partial reduce min))
+                     (sort-by (partial reduce (fn option-compare [a b]
+                                                (cond (nil? a) b
+                                                      (nil? b) a
+                                                      true     (min a b)))))
                      (map (fn [scc]
                             {:key k
                              :scc scc}))
@@ -587,8 +592,8 @@
                  version-graphs txn/ext-writes a txn/ext-writes b)]
       (assoc e
              :type :ww
-             :a-mop-index (index-of (:value a) [:w key value])
-             :b-mop-index (index-of (:value b) [:w key value']))))
+             :a-mop-index (.indexOf ^clojure.lang.PersistentVector (:value a) [:w key value])
+             :b-mop-index (.indexOf ^clojure.lang.PersistentVector (:value b) [:w key value']))))
 
   (render-explanation [_ {:keys [key value value'] :as m} a-name b-name]
     (str a-name " set key " (pr-str key) " to " (pr-str value) ", and "
@@ -603,8 +608,8 @@
                                 txn/ext-reads a txn/ext-writes b)]
       (assoc e
              :type :rw
-             :a-mop-index (index-of (:value a) [:r key value])
-             :b-mop-index (index-of (:value b) [:w key value']))))
+             :a-mop-index (.indexOf ^clojure.lang.PersistentVector (:value a) [:r key value])
+             :b-mop-index (.indexOf ^clojure.lang.PersistentVector (:value b) [:w key value']))))
 
   (render-explanation [_ {:keys [key value value'] :as m} a-name b-name]
     (str a-name " read key " (pr-str key) " = " (pr-str value) ", and "
@@ -644,8 +649,8 @@
                     {:type  :wr
                      :key   k
                      :value v
-                     :a-mop-index (index-of (:value a) [:w k v])
-                     :b-mop-index (index-of (:value b) [:r k v])})))
+                     :a-mop-index (.indexOf ^clojure.lang.PersistentVector (:value a) [:w k v])
+                     :b-mop-index (.indexOf ^clojure.lang.PersistentVector (:value b) [:r k v])})))
               nil
               writes)))
 

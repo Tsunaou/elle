@@ -8,6 +8,7 @@
             [elle [core :as elle]
                   [consistency-model :as cm]
                   [graph :as g]
+                  [recovery :as recovery]
                   [util :as util]
                   [viz :as viz]]
             [jepsen.txn :as txn :refer [reduce-mops]]
@@ -17,6 +18,7 @@
                                LinearMap
                                Map)))
 
+(set! *warn-on-reflection* true)
 
 (start-logging! {:console "%p [%d] %t - %c %m%n"})
 
@@ -38,6 +40,43 @@
   "A sequence of all unique keys in the given history."
   [history]
   (->> history op-mops (map (comp second second)) distinct))
+
+(defn args->writes
+  "Takes a function which determines if a mop's f is a write, and a history.
+  Returns a map like
+
+    {k {a [op mop]
+        ...}
+     ...}
+
+  where k is a key, a is a (presumably unique) argument written to that key,
+  and [op mop] is the operation, and micro-op in that operation, which wrote
+  that argument."
+  [write? history]
+  (->> history
+       (remove op/invoke?)
+       (reduce-mops (fn [m op [f k v :as mop]]
+                      (if (write? f)
+                        (assoc-in m [k v] [op mop])
+                        m))
+                    {})))
+
+(defn ReadRecovery
+  "Takes a history and returns a ReadRecovery object mapping read mops to their
+  corresponding versions. This is trivial, because reads *return* their
+  versions."
+  [history]
+  (let [versions->reads (reduce-mops (fn [m op [f k v :as mop]]
+                                       (if (= :r f)
+                                         (let [writes (get-in m [k v] #{})
+                                               writes' (conj writes [op mop])]
+                                           (assoc-in m [k v] writes'))
+                                         m))
+                                     {}
+                                     history)]
+    (reify recovery/ReadRecovery
+      (version->reads [_ k version]
+        (get-in versions->reads k version)))))
 
 (def integer-types
   #{Byte Short Integer Long})
