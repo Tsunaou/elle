@@ -82,6 +82,41 @@
     (h/index [t1 t1' t2 t2' t3 t3' t4 t4'])))
 (la/check {:consistency-models [:strong-session-snapshot-isolation]} g-single-nonadjacent-his3)
 
+(def g-non-min-cycle
+  (let [[t1 t1'] (pair (lat/op 0 :ok "ax1rx1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ax2ry"))
+        [t3 t3'] (pair (lat/op 2 :ok "ay1rx12"))
+        [t4 t4'] (pair (lat/op 3 :ok "ax3rx123rx"))]
+    (h/index [t1 t1' t2 t2' t3 t3' t4 t4'])))
+(la/check {:consistency-models [:serializable]} g-non-min-cycle)
+
+(def hb
+  (let [[t1 t1'] (pair (lat/op 0 :fail "ax1"))
+        [t2 t2'] (pair (lat/op 1 :ok "rx1"))]
+    (h/index [t1 t2 t1' t2'])))
+
+(def hc
+  (let [[t1 t1'] (pair (lat/op 0 :ok "rx1ax1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ay1"))]
+    (h/index [t1 t2 t1' t2'])))
+
+(def hd
+  (let [[t1 t1'] (pair (lat/op 0 :ok "ax1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ax2rx1"))]
+    (h/index [t1 t2 t1' t2'])))
+
+(def he
+  (let [[t1 t1'] (pair (lat/op 0 :ok "ax1ax2"))
+        [t2 t2'] (pair (lat/op 1 :ok "rx1"))]
+    (h/index [t1 t2 t1' t2'])))
+
+(def hf
+  (let [[t1 t1'] (pair (lat/op 0 :ok "ax1"))
+        [t2 t2'] (pair (lat/op 1 :ok "ax2"))
+        [t3 t3'] (pair (lat/op 2 :ok "rx1rx12"))]
+    (h/index [t1 t2 t3 t1' t2' t3'])))
+
+(la/check {:consistency-models [:snapshot-isolation]} hb)
 
 (deftest ^:interactive view-scc-test
   (let [a (list-analysis)]

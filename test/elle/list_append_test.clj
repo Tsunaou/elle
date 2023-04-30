@@ -988,45 +988,35 @@
       "to-check/disthotspot/history0.edn"))
 
 (def params
-  ["to-check/sess5/",
-   "to-check/ops-per-txn10/",
-   "to-check/ops-per-txn25/",
-   "to-check/read-ratio0.2/",
-   "to-check/distuniform/",
-   "to-check/read-ratio0.4/",
-   "to-check/keys2000/",
-   "to-check/ops-per-txn20/",
-   "to-check/txns-per-sess50/",
-   "to-check/sess25/",
-   "to-check/ops-per-txn15/",
-   "to-check/sess20/",
-   "to-check/read-ratio0.6/",
-   "to-check/keys10000/",
-   "to-check/disthotspot/",
-   "to-check/txns-per-sess150/",
-   "to-check/txns-per-sess200/",
-   "to-check/txns-per-sess100/",
-   "to-check/read-ratio0.8/",
-   "to-check/distzipf/",
-   "to-check/sess15/",
-   "to-check/txns-per-sess250/",
-   "to-check/read-ratio1.0/",
-   "to-check/ops-per-txn5/",
-   "to-check/keys8000/",
-   "to-check/keys6000/",
-   "to-check/sess30/",
-   "to-check/keys4000/",
+  ["to-check/sess2/",
+   "to-check/sess5/",
    "to-check/sess10/",
-   "to-check/ops-per-txn30/"])
+   "to-check/sess15/",
+   "to-check/sess20/",
+   "to-check/sess25/",
+   "to-check/sess30/",
+   "to-check/sess40/"
+   "to-check/sess50/",,
+   "to-check/op10/",
+   "to-check/op20/",
+   "to-check/op30/",
+   "to-check/op40/",
+   "to-check/op50/",
+   "to-check/txns-per-session100/",
+   "to-check/txns-per-session200/",
+   "to-check/txns-per-session300/",
+   "to-check/txns-per-session400/",
+   "to-check/txns-per-session500/" 
+   ])
 
 (defn get-time
   [filename]
   (let [his (read-history filename)]
     (time
-     (c {:consistency-models [:strong-snapshot-isolation], :anomalies [:G-nonadjacent]} his))))
+     (c {:consistency-models [:strong-session-snapshot-isolation]} his))))
 
 (for [param params]
-  (let [check-results (for [i (range 10)]
+  (let [check-results (for [i (range 3)]
                         (let [filename (str param "history" i ".edn")]
                           (get-time filename)))]
     {:param param

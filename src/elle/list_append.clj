@@ -11,8 +11,7 @@
             [elle [core :as elle]
                   [graph :as g]
                   [txn :as ct]
-                  [util :as util :refer [index-of
-                                         nanos->secs]]]
+                  [util :as util :refer [nanos->secs]]]
             [hiccup.core :as h]
             [jepsen [txn :as txn :refer [reduce-mops]]]
             [jepsen.txn.micro-op :as mop]
