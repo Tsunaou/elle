@@ -1324,3 +1324,16 @@
 (c {:consistency-models [:strong-session-snapshot-isolation]
     :anomalies [:G-nonadjacent-process]
     :additional-graphs [elle/process-graph]} hg-cyclic-CO-invoke)
+
+(def h-causal-order 
+  (let [t1 (op 1 :invoke "rxay1")
+        t1' (op 1 :ok "rx1ay1") 
+        t2 (op 2 :invoke "ry")
+        t2' (op 2 :ok "ry1")
+        t3 (op 2 :invoke "ax1")
+        t3' (op 2 :ok "ax1")]
+    (h/history [t1 t1' t2 t2' t3 t3'])))
+
+(def h-future-read
+  (let [t1 (op "rx1ax1")]
+    (h/history [t1])))

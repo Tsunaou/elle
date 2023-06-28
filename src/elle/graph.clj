@@ -659,7 +659,9 @@
         ; Just to speed up equality checks here, we'll construct an isomorphic
         ; graph with integers standing for our ops, find a cycle in THAT, then
         ; map back to our own space.
-        [gn mapping]  (renumber-graph g)]
+        _             (info "find cycle with g:" g)
+        [gn mapping]  (renumber-graph g)
+        _             (info "find cycle with gn:" gn)]
     (->> (vertices gn)
          (keep (fn [start]
                  (when-let [cycle (->> (path-shells gn [[start]])

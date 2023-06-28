@@ -14,7 +14,8 @@
                     [txn :as txn :refer [reduce-mops]]]
             [jepsen.history.fold :refer [loopf]]
             [tesser.core :as t]
-            [unilog.config :refer [start-logging!]])
+            [unilog.config :refer [start-logging!]]
+            [elle.graph :as g])
   (:import (io.lacuna.bifurcan IGraph
                                LinearMap
                                Map)
@@ -258,6 +259,7 @@
                            (filter #{[:rw :rw]})  ; Find an rw, rw pair
                            seq
                            boolean)
+            _         (info "rw-adj?" rw-adj?)
             ; We compute a type based on data dependencies alone
             data-dep-type (cond (= 1 rw) "G-single"
                                 (< 1 rw) (if rw-adj?
@@ -268,12 +270,13 @@
                                 true (throw (IllegalStateException.
                                               (str "Don't know how to classify"
                                                    (pr-str ex)))))
+            _          (info "data-dep-type" data-dep-type)
             ; And tack on a -process or -realtime tag if there are those types
             ; of edges.
             subtype (cond (< 0 realtime) "-realtime"
                           (< 0 process)  "-process"
                           true           "")]
-        ; (prn :type (keyword (str data-dep-type subtype)))
+        (prn :type (keyword (str data-dep-type subtype)))
         (assoc ex :type (keyword (str data-dep-type subtype)))))
 
     (render-cycle-explanation [_ pair-explainer
@@ -520,7 +523,7 @@
 
 (def cycle-search-timeout
   "How long, in milliseconds, to look for a certain cycle in any given SCC."
-  1000)
+  10000)
 
 (defn cycle-cases-in-scc-fallback
   "This finds SOME cycle via DFS in an SCC as a fallback, in case our BFS gets
@@ -595,7 +598,7 @@
       ; g-single, there's no need to look for g-nonadjacent.
       ;(info "Checking scc of size" (count scc))
       (doseq [[type spec] cycle-anomaly-specs]
-        ; (info "Checking for" type)
+        (info "Checking for" type)
         ; For timeout reporting, we keep track of what type of anomaly
         ; we're looking for.
         (swap! types conj type)
@@ -609,28 +612,38 @@
                           (fg rels))
                       g)
               ; Now, we have three cycle-finding strategies...
-              ;_     (info "Finding cycle")
+              _     (when (= type :G-single-process)
+                      (info "Finding cycle in g:" g))
+              _     (when (= type :G-single-process)
+                      (info "Finding cycle in scc:" scc))
               cycle (cond (:with spec)
-                          (g/find-cycle-with (:with spec)
+                          (do
+                            (info ":with")
+                            (g/find-cycle-with (:with spec)
                                              (:filter-path-state spec)
-                                             g scc)
+                                             g scc))
 
                           (:rels spec)
-                          (g/find-cycle g scc)
+                          (do
+                            (info ":rels")
+                            (g/find-cycle g scc))
 
                           true
-                          (g/find-cycle-starting-with
-                            (fg (:first-rels spec))
-                            (fg (:rest-rels spec))
-                            scc))]
+                          (do
+                            (info ":else")
+                            (g/find-cycle-starting-with
+                             (fg (:first-rels spec))
+                             (fg (:rest-rels spec))
+                             scc)))]
           ;_ (info "Done with cycle search")
           (when cycle
-            ; (info "Explaining cycle")
+            (info "Explaining cycle")
+            (info "Found cycle" cycle)
             ; Explain the cycle
             (let [ex (elle/explain-cycle cycle-explainer pair-explainer
                                          cycle)
-                  ; _ (info "Filtering explanation")
-                  ; _ (prn :explanation ex)
+                  _ (info "Filtering explanation") 
+                  _ (prn :explanation ex)
                   ; Make sure it passes the filter, if we have one.
                   ex (if-let [p (:filter-ex spec)]
                        (when (p ex) ex)
@@ -685,8 +698,12 @@
   relevant anomalies."
   [opts analyzer history]
   (let [analysis (cycles opts analyzer history)
+        _ (println ":anomalies is" (:anomalies analysis))
+        _ (println "(reportable-anomaly-types opts) is " (reportable-anomaly-types opts))
         anomalies (select-keys (:anomalies analysis)
-                               (reportable-anomaly-types opts))]
+                               (reportable-anomaly-types opts))
+        _ (println "analysis is" analysis)
+        _ (println "anomalies is" anomalies)]
     ; First, text files.
     (doseq [[type cycles] anomalies]
       (when (cycle-types type)

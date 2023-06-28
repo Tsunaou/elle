@@ -807,3 +807,169 @@
     (println (format "rw-register-perf-test: %d ops run in %.2f s (%.2f ops/sec); checked in %.2f s (%.2f ops/sec)"
                      n run-time (/ n run-time)
                      check-time (/ n check-time)))))
+
+(defn c
+  "Check a history."
+  [opts history]
+  (-> (check opts history)
+      ; We don't care about these; it's kinda redundant.
+      (dissoc :also-not)))
+
+(def ha-thin-air
+  "(a, thin air): 
+   [r(x,1,1) r(y,1,1)]"
+  (let [t1 (op "rx1ry1")]
+    (h/history [t1])))
+
+(def hb-aborted-read
+  "(b, aborted read): 
+   [w(x,1,1) w(y,1,1)] 
+   [r(x,1,2)]"
+  (let [t1 (op 1 :fail "wx1wy1")
+        t2 (op 2 :ok "rx1")]
+    (h/history [t1 t2])))
+
+(def hc-future-read
+  "(c, future read): 
+   [r(x,1,1) w(x,1,1)]"
+  (let [t1 (op "rx1wx1")]
+    (h/history [t1])))
+
+(def hd-not-my-own-write
+  "(d, not my own write): 
+   [w(x,1,1)] 
+   [w(x,2,2) r(x,1,2)]"
+  (let [t1 (op 1 :ok "wx1")
+        t2 (op 2 :ok "wx2rx1")]
+    (h/history [t1 t2])))
+
+(def he-intermediate-read
+  "(e, intermediate read): 
+   [w(x,1,1) w(x,2,1)] 
+   [r(x,1,2)]"
+  (let [t1 (op 1 :ok "wx1wx2")
+        t2 (op 2 :ok "rx1")]
+    (h/history [t1 t2])))
+
+(def hf-non-repeatable-read
+  "(f, nonrepeatable read): 
+   [w(x,1,1)] 
+   [w(x,2,2)] 
+   [r(x,1,3) r(x,2,3)]"
+  (let [t1 (op 1 :ok "wx1")
+        t2 (op 2 :ok "wx2")
+        t3 (op 3 :ok "rx1rx2")]
+    (h/history [t1 t2 t3])))
+
+(def hg-cyclic-CO
+  "(g, cyclicCO): 
+   [r(x,1,1) w(y,1,1)] 
+   [r(y,1,2)] 
+   [r(x,1,2)]"
+  (let [t1 (op 1 :ok "rx1wy1")
+        t2 (op 2 :ok "ry1")
+        t3 (op 2 :ok "rx1")]
+    (h/history [t1 t2 t3])))
+
+(def hh-frac-read-CO
+  "(h, frac read CO): 
+   [w(x,2,1)] 
+   [r(x,2,2)] 
+   [w(x,1,2) w(y,1,2)] 
+   [r(x,2,3) r(y,1,3)]"
+  (let [t1 (op 1 :ok "wx2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "wx1wy1")
+        t4 (op 3 :ok "rx2ry1")]
+    (h/history [t1 t2 t3 t4])))
+
+(def hi-frac-read-VO
+  "(i, frac read VO): 
+   [w(x,2,1)] 
+   [r(x,2,2)] 
+   [w(x,1,2) w(y,1,2)] 
+   [r(x,2,3) r(y,1,3)] 
+   [r(x,2,4)] 
+   [r(x,1,4)] "
+  (let [t1 (op 1 :ok "wx2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "wx1wy1")
+        t4 (op 3 :ok "rx2ry1")
+        t5 (op 4 :ok "rx2")
+        t6 (op 4 :ok "rx1")]
+    (h/history [t1 t2 t3 t4 t5 t6])))
+
+(def hj-init-read
+  "(j, init read): 
+   [w(x,1,1)] 
+   [w(x,2,1) w(y,2,1)] 
+   [r(x,1,1)]"
+  (let [t1 (op 1 :ok "wx1")
+        t2 (op 1 :ok "wx2wy2")
+        t3 (op 1 :ok "rx1")]
+    (h/history [t1 t2 t3])))
+
+(def hk-co-conflict-vo
+  "(k, co conflict vo): 
+   [w(x,2,1)] 
+   [r(x,2,2)] 
+   [w(x,1,2) w(y,1,2)] 
+   [r(x,2,3)]"
+  (let [t1 (op 1 :ok "wx2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "wx1wy1")
+        t4 (op 3 :ok "rx2")]
+    (h/history [t1 t2 t3 t4])))
+
+(def hl-conflict-vo
+  "(l, conflict vo):  
+   [w(x,2,1)] 
+   [r(x,2,2)] 
+   [w(x,1,2) w(y,1,2)] 
+   [r(x,2,3)] 
+   [r(x,2,4)] 
+   [r(x,1,4)]"
+  (let [t1 (op 1 :ok "wx2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "wx1wy1")
+        t4 (op 3 :ok "rx2")
+        t5 (op 4 :ok "rx2")
+        t6 (op 4 :ok "rx1")]
+    (h/history [t1 t2 t3 t4 t5 t6])))
+
+(def his-to-tcc
+  [ha-thin-air
+   hb-aborted-read
+   hc-future-read
+   hd-not-my-own-write
+   he-intermediate-read
+   hf-non-repeatable-read
+   hh-frac-read-CO
+   hg-cyclic-CO
+   hi-frac-read-VO
+   hj-init-read
+   hk-co-conflict-vo
+   hl-conflict-vo])
+
+(defn test-tcc
+  [h]
+  (c {:consistency-models [:strong-session-snapshot-isolation]} h))
+
+(defn test-all-histories []
+  (let [history-names ['ha-thin-air
+                       'hb-aborted-read
+                       'hc-future-read
+                       'hd-not-my-own-write
+                       'he-intermediate-read
+                       'hf-non-repeatable-read
+                       'hg-cyclic-CO
+                       'hh-frac-read-CO'
+                       'hi-frac-read-VO
+                       'hj-init-read
+                       'hk-co-conflict-vo
+                       'hl-conflict-vo]]
+    (doseq [h (map vector history-names his-to-tcc)]
+      (let [[name history] h]
+        (println "Testing history:" name)
+        (println "Content:" history)
+        (println (test-tcc history))))))
